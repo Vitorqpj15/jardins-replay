@@ -21,19 +21,7 @@ Evitar a necessidade de gravar e procurar manualmente toda a partida.
 
 O funcionamento inicial será baseado no seguinte fluxo:
 
-Câmera
-   ↓
-Gravação contínua
-   ↓
-Jogador aperta o botão
-   ↓
-Sistema identifica o momento
-   ↓
-Recupera os últimos 30 segundos
-   ↓
-Lance fica disponível
-   ↓
-Usuário pode visualizar e salvar
+Câmera -> Gravação contínua -> Jogador aperta o botão -> Sistema identifica o momento -> Recupera os últimos 30 segundos -> Lance fica disponível -> Usuário pode visualizar e salvar
 
 #Tecnologias
 Python
