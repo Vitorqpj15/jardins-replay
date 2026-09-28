@@ -1,4 +1,6 @@
 import cv2
+import os
+import subprocess
 import time
 import sqlite3
 from datetime import datetime
@@ -56,24 +58,48 @@ while True:
         frames_extra_restantes -= 1
 
         if frames_extra_restantes <= 0:
-            nome_arquivo = f"lances/lance_{int(time.time())}.mp4"
+            timestamp = int(time.time())
+            arquivo_temp = f"lances/temp_{timestamp}.mp4"
+            nome_arquivo = f"lances/lance_{timestamp}.mp4"
+
+            # 1) O OpenCV grava o arquivo temporário (codec mp4v)
             fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-            writer = cv2.VideoWriter(nome_arquivo, fourcc, fps_real, (largura, altura))
+            writer = cv2.VideoWriter(arquivo_temp, fourcc, fps_real, (largura, altura))
 
             for f in frames_do_lance:
                 writer.write(f)
 
             writer.release()
-            print(f"Lance salvo em: {nome_arquivo}")
 
-            
-            data_hora_atual = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            cursor.execute(
-                "INSERT INTO lances (nome_arquivo, data_hora) VALUES (?, ?)",
-                (nome_arquivo, data_hora_atual)
+            # 2) O ffmpeg converte para H.264, que o navegador consegue tocar
+            print("Convertendo o lance para H.264...")
+            resultado = subprocess.run(
+                [
+                    "ffmpeg", "-y",
+                    "-i", arquivo_temp,
+                    "-c:v", "libx264",
+                    "-pix_fmt", "yuv420p",
+                    "-movflags", "+faststart",
+                    nome_arquivo,
+                ],
+                capture_output=True,
+                text=True,
             )
-            conn.commit()
-            print("Lance registrado no banco de dados.")
+
+            if resultado.returncode == 0:
+                os.remove(arquivo_temp)
+                print(f"Lance salvo em: {nome_arquivo}")
+
+                data_hora_atual = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                cursor.execute(
+                    "INSERT INTO lances (nome_arquivo, data_hora) VALUES (?, ?)",
+                    (nome_arquivo, data_hora_atual)
+                )
+                conn.commit()
+                print("Lance registrado no banco de dados.")
+            else:
+                print("Erro ao converter o vídeo com o ffmpeg:")
+                print(resultado.stderr[-500:])  # últimas linhas do erro
 
             gravando_lance = False
             frames_do_lance = []
