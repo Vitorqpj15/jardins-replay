@@ -1,2 +1,4 @@
-venv/lances/
+venv/
+lances/
 pelada.db
+disparo.flag
