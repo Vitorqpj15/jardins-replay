@@ -2,3 +2,5 @@ venv/
 lances/
 pelada.db
 disparo.flag
+buffer/
+lista.txt
